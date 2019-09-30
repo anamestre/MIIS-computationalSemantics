@@ -1,0 +1,5 @@
+ aardvark computer data result pie sugar
+cherry 0 2 8 9 442 25
+strawberry 0 0 0 1 60 19
+digital 0 1670 1683 85 5 4
+information 0 3325 3982 378 5 13
