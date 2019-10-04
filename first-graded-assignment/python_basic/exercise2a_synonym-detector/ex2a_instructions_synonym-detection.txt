@@ -1,0 +1,36 @@
+
+Experimental Setup: Model and Data
+==================================
+
+We need 
+1. A detector of highly similar words (our computational model): That is, a classifier that, given a pair of words, predicts whether the words are highly similar in meaning (close-synonyms) or whether they are dissimilar in meaning. In other words, for a given word pair (e.g., "couch"-"sofa"), the classifier should output True (1) if the words are close synonyms, and False (0) otherwise (e.g., "couch"-"baseball"). 
+Overall, this means that the classifier needs to separate a set of word pairs into semantically highly similar word pairs and dissimilar pairs (see Step 2 below). 
+
+2. To compare the meaning of words, the classifier needs meaning representations for them (a semantic model). 
+=> We will use the publicly available skipgram (word2vec) embeddings learnt on the GoogleNews corpus (see Steps 3 and 4). Let's call the model "skipgram-GoogleNews model".
+
+3.. A gold standard resource to evaluate the semantic model on its ability to detect highly similar words. 
+==> see Step 1.
+
+Steps to take:
+--------------
+1. In the subfolder data/ you will find the file word-pairs_pos_gt-answer_w2v.tsv. 
+It contains 4 columns, separated by tabs. Each line corresponds to one word pair (first and second column), for which also the pairt-of-speech (V(erb) or N(oun) or A(djective), third column) is given. 
+The fourth column contain the ground truth labels (also called the reference): 1 stands for "highly similar in meaning", and 0 stands for "not very similar". These labels are the targets -- they are what the classifier should predict for the corresponding word pairs. 
+Open the file and get familiar with the data.
+
+2. We will use a very simple approach to classify a word pair: Given two words, our method computes the cosine similarity (see exercise1) between them. If the similarity sim is larger than 0.5 (i.e., if sim>0.5) the pair is considered to be highly similar and predicts True (1), else it predict False (0).  
+
+3. Run setup.py to make sure all the required python modules and data are installed. 
+If you run into errors, follow the instructions printed in the terminal and within setup.py.
+
+4. setup.py loaded a small sample of the skipgram-GoogleNews model, which you can find in the subfolder data/ (file pruned.GoogleNews-vectors-negative300.txt). It covers all the words you need for this exercise. It is also prepared to work with the full model. For this exercise it is not necessary, but for any data exploration and for future purposes you may want to download the full model which covers a much larger vocabulary, and save it in the data/ subfolder.
+File name: GoogleNews-vectors-negative300.bin.gz
+Source: https://code.google.com/p/word2vec/   
+or direct link to google drive: https://drive.google.com/file/d/0B7XkCwpI5KDYNlNUTTlSS21pQmM/edit?usp=sharing
+
+If you use this model, set the variable pruned_model to False in setup.py and run the latter again. If you run into memory problems, just use the sample model (i.e., set pruned_model to True again). 
+
+5. Now you're ready to do Exercise 1, by filling in the holes in the script exercise2a_synonym_detector.py (see TODOs).
+
+Once you have successfully completed the implementation, the script prints the classifier's predictions for each word pair and whether these were correct ("c") or wrong ("x"). It also prints the Precision, Recall, and Accuracy of the model. 

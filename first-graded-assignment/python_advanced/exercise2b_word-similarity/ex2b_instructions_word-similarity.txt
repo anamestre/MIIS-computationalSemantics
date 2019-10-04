@@ -1,0 +1,60 @@
+
+
+A Experimental Setup: Model and Data
+====================================
+
+We need 
+1. A semantic space that represents the meaning of words by vectors
+=> We will use the publicly available skipgram (word2vec) embeddings learnt on the GoogleNews corpus (see Step 3). Let's call the model "skipgram-GoogleNews model".
+
+2. A gold standard resource to evaluate the semantic model on its ability to account for human judgements regarding the similarity of words. 
+==> We will use SimLex-999 (see Step 1).
+
+Steps to take:
+--------------
+1. Download SimLex-999, and save and extract it in the current directory, i.e., exercise2b_word-similarity/.
+download link: https://fh295.github.io/SimLex-999.zip
+Read the README.txt of SimLex-999, and open SimLex-999.txt (with, e.g., a text editor), to get familiar with the data.
+
+2. Run setup.py to make sure all the required python modules and data are installed. 
+If you run into errors, follow the instructions printed in the terminal and within setup.py.
+
+3. By default, only a small sample model of semantic word representations was loaded (available in the NLTK model). If possible, you should use the embeddings learnt on the *Google news corpus with word2vec*; download and save them in the current directory.
+File name: GoogleNews-vectors-negative300.bin.gz
+Source: https://code.google.com/p/word2vec/
+or direct link to google drive: https://drive.google.com/file/d/0B7XkCwpI5KDYNlNUTTlSS21pQmM/edit?usp=sharing
+
+If you use this model, set the variable sample_model to False in setup.py and run the latter again.
+
+4. Now you're ready to implement the solution of the task (see below).
+
+
+B. TASK:
+========
+
+1. Background:
+--------------
+Read at the very least the abstract and Section 5 of the paper which is published along the SimLex-999 benchmark (see the assignemnt folder). If you haven't done it yet, also read the README.txt of SimLex-999 (see Step 1 above).
+
+2. Implementation:
+------------------
+==> to be written into exercise2b_word_similarity.py
+Evaluate the skipgram-GoogleNews model on the task of simulating human behaviour on the task of judging the semantic similarity of words. As explained, use SimLex-999 as benchmark (also called "reference", or, as in the SimLex-999 paper "gold standard"). Make sure you understand what kind of data is in SimLex-999.
+
+This means that you need to 
+(i) load the semantic model (skipgram-GoogleNews or the sample model) and the word pairs (of SimLex-999)
+
+(ii) estimate the similarity between each pair of words (e.g., ("old", "new")) contained in SimLex-999.txt by computing the cosine similarity between their corresponding skipgram-GoogleNews embeddings. 
+
+(iii) given all these similarity estimates produced by the model, compare them to the corresponding human judgements by computing Spearman's rho correlation coefficient. 
+So, load the human judgements, which are in the column "SimLex-999" in SimLex-999.txt, e.g., ("old", "new") has an average similarity of 1.58.  
+For measuring spearman's rho, you can use the function spearmanr() provided by the package scipy.stats
+(see https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.spearmanr.html)
+e.g., 
+correl_score, pvalue = spearmanr(predictions, gold, nan_policy='raise')
+
+
+
+
+
+

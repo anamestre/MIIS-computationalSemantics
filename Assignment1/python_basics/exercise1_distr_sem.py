@@ -133,7 +133,9 @@ for other pairs of words
   https://www.py4e.com/html3/04-functions
 """
 def compute_length(word):
-    return math.sqrt(sum(map(lambda a: a**2, vectors[word])))
+    length = math.sqrt(sum(map(lambda a: a**2, vectors[word])))
+    #print("word " + word + " with length: " + str(length))
+    return length
 
 def compute_dot_product(v, w):
     return sum(map(lambda a, b: a*b, vectors[v], vectors[w]))
@@ -188,9 +190,32 @@ for w in new_vectors:
         cos = cosine_similarity(w, o)
         print("The cosine similarity between " + w + " and " + o + " is: " + str(cos))
 
-        
-        
-
 # Describe your observations - which word pair has the highest similarity, which one has the lowest?
+"""
+Results: 
+The cosine similarity between cherry and strawberry is: 0.9687015451109119
+The cosine similarity between cherry and digital is: 0.018919573737877067
+The cosine similarity between cherry and information is: 0.01929294427854365
+The cosine similarity between strawberry and cherry is: 0.9687015451109119
+The cosine similarity between strawberry and digital is: 0.003087033730043851
+The cosine similarity between strawberry and information is: 0.0028252735996785235
+The cosine similarity between digital and cherry is: 0.018919573737877067
+The cosine similarity between digital and strawberry is: 0.003087033730043851
+The cosine similarity between digital and information is: 0.9956521724776173
+The cosine similarity between information and cherry is: 0.01929294427854365
+The cosine similarity between information and strawberry is: 0.0028252735996785235
+The cosine similarity between information and digital is: 0.9956521724776173
 
+Observations:
+    * The most similar pair of words are:
+        - cherry-strawberry (0.9687015451109119): it is obvious that these two would be really similar since they're both
+        red fruits. And if we check their vectors, both pie and sugar tend to occur in their window.
+        - digital-information (0.9956521724776173): these two words are really similar since they're usually topic-related nowadays. 
+        And if we check their vectors, both computer and data tend to occur in their window. Also result tends to occur in their windows although with not that 
+        much frequency.
+    * The cosine similarity is simetric. That means: cosine_similarity(x, y) == cosine_similarity(y, x)
+    * The least similar pair of words are: digital-strawberry (0.003087033730043851) --> This is due to the differences on their vectors. While on strawberry
+    pie and sugar tend to occur, on digital it's just the opposite, computer and data tend to occur. These two vectors are almost orthogonal.
+
+"""
 
