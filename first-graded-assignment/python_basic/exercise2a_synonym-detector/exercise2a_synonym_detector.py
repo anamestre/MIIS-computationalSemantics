@@ -50,6 +50,10 @@ tp = 0.0 # counter for the true positives
 fp = 0.0 # counter for the false positives
 tn = 0.0 # counter for the true negatives
 fn = 0.0 # counter for the false negatives
+scores = {"tp": {'A': 0.0, 'N': 0.0, 'V': 0.0},
+          "fp": {'A': 0.0, 'N': 0.0, 'V': 0.0},
+          "tn": {'A': 0.0, 'N': 0.0, 'V': 0.0},
+          "fn": {'A': 0.0, 'N': 0.0, 'V': 0.0}}
 
 # opens the reference file
 with open("data/word-pairs_pos_gt-answer_w2v.tsv") as f:
@@ -59,7 +63,7 @@ with open("data/word-pairs_pos_gt-answer_w2v.tsv") as f:
     for line in f.readlines():
         word1, word2, pos, issimilar = line.strip().split(column_separator)
         # TODO: convert the value of issimilar to an integer number (hint: see exercise1-inclass)
-
+        issimilar = int(issimilar)
 
         # compute the cosine similarity using the semantic model
         # by applying the "similarity" method provided by the gensim package
@@ -72,23 +76,30 @@ with open("data/word-pairs_pos_gt-answer_w2v.tsv") as f:
                 print("c", word1, word2, pos, sim_score, issimilar)
                 # increase the counter for true positives by 1
                 tp += 1 # this is equivalent to tp = tp + 1
+                scores["tp"][pos] += 1
             # humans say words are not similar
             # TODO: add condition that prints 'x' in this case
-            
-            
-            
+            else:
+                print("x", word1, word2, pos, sim_score, issimilar)
                 # TODO: increase the counter for false positives by 1
+                fp += 1  
+                scores["fp"][pos] += 1
                 
                 
         # model: words are not similar in meaning, but humans: words are highly similar
         # TODO: check if issimilar is 1 (that is, if humans say words are highly similar)
-        
-        
+        else:
             # TODO: print "x" and the two words, the pos, the estimated cosine similarity 
             # and the human judgement (see above)
-            
-            
-            # TODO: increase the corresponding counter by 1
+            if issimilar == 1:
+                print("x", word1, word2, pos, sim_score, issimilar)    
+                # TODO: increase the corresponding counter by 1
+                fn += 1
+                scores["fn"][pos] += 1
+            else:
+                print("c", word1, word2, pos, sim_score, issimilar)
+                tn += 1
+                scores["tn"][pos] += 1
             
             
         # both, model and humans: words are not similar in meaning
@@ -101,6 +112,26 @@ with open("data/word-pairs_pos_gt-answer_w2v.tsv") as f:
 precision = 0.0
 recall = 0.0
 accuracy = 0.0
+
+
+precision = tp / (tp + fp)
+recall = tp / (tp + fn)
+accuracy = (tp + tn) / (tp + tn + fp + fn)
+
+precision_A = scores['tp']['A'] / (scores['tp']['A'] + scores['fp']['A'])
+precision_N = scores['tp']['N'] / (scores['tp']['N'] + scores['fp']['N'])
+precision_V = scores['tp']['V'] / (scores['tp']['V'] + scores['fp']['V'])
+
+recall_A = scores['tp']['A'] / (scores['tp']['A'] + scores['fn']['A'])
+recall_N = scores['tp']['N'] / (scores['tp']['N'] + scores['fn']['N'])
+recall_V = scores['tp']['V'] / (scores['tp']['V'] + scores['fn']['V'])
+
+accuracy_A = (scores['tp']['A'] + scores['tn']['A']) / (scores['tp']['A'] + scores['tn']['A'] + scores['fp']['A'] + scores['fn']['A'])
+accuracy_N = (scores['tp']['N'] + scores['tn']['N']) / (scores['tp']['N'] + scores['tn']['N'] + scores['fp']['N'] + scores['fn']['N'])
+accuracy_V = (scores['tp']['V'] + scores['tn']['V']) / (scores['tp']['V'] + scores['tn']['V'] + scores['fp']['V'] + scores['fn']['V'])
+print("Precision: ", precision_A, precision_N, precision_V)
+print("Recall: ", recall_A, recall_N, recall_V)
+print("Accuracy: ", accuracy_A, accuracy_N, accuracy_V)
 # TODO: compute the precision, recall, and accuracy using the counters tp, fp, tn, fn
 
 
