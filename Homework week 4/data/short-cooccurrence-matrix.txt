@@ -1,0 +1,6 @@
+4 3
+hot 0 1 2
+dog 4 2 1
+sausage 4 3 2
+sandwich 1 6 2
+
