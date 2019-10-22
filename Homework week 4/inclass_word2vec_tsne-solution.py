@@ -7,27 +7,15 @@ Created 2019
 
 import os
 import sys
-
-### ### ### ### THIRD-PATY PACKAGES ### ### ### ###
-# We import third-party packages which are not directly in python distribution. That is, they may need to be installed by you.
-
-import numpy as np
-
 import gensim
-# The following is needed for computing the unit length of a vector
 from gensim import matutils 
-
-# Needed for t-sne & plotting in 2-dimensional space; see tsne.py 
-# in this folder if you are curious 
-# t-sne (t-Distributed Stochastic Neighbor Embedding): https://lvdmaaten.github.io/tsne/
-import tsne
-import matplotlib.pyplot as plt # for plotting
-
-# The Natural Language Toolkit: https://www.nltk.org/
-# This toolkit is a standard for linguistic processing of text data -- you will probably work with it in the introductory course on computational linguistics in the second term. 
-# Here, we just use it to load pruned word2vec GoogleNews embeddings (the "sample model").
 import nltk
 from nltk.data import find
+from matplotlib.pyplot import figure
+import matplotlib.pyplot as plt # for plotting
+import numpy as np
+import tsne
+
 
 
 ### ### ### ### OUR CODE STARTS HERE ### ### ### ###
@@ -59,7 +47,7 @@ def load_sem_model(sample_model=True):
     
     return sem_model
 
-def load_toy_semantic_model(filename = "data/short-cooccurrence-matrix.txt"):
+def load_toy_semantic_model(filename="data/short-cooccurrence-matrix.txt"):
     # the following command uses as is a command of gensim to load a semantic space
     toy_model = gensim.models.KeyedVectors.load_word2vec_format(filename, binary=False)
     return toy_model
@@ -170,6 +158,7 @@ turney_littman = turney_littman_positive + turney_littman_negative
 word_list = []
 # List with vectors (embeddings) corresponding to the words in word_list
 vector_list = []
+# TODO Put here your code to the task
 for w in set(turney_littman):
     if w in sem_model:
         vector_list.append(sem_model[w])
@@ -201,9 +190,9 @@ vec1_unitlength = matutils.unitvec(vec1).astype(np.float32)
 vec2_unitlength = matutils.unitvec(vec2).astype(np.float32)
 
 # Compare
-np.dot(vec1_unitlength, vec2_unitlength)
+print(np.dot(vec1_unitlength, vec2_unitlength))
 
 #to 
-sem_model.similarity(word1, word2)
+print(sem_model.similarity(word1, word2))
 
 # make sure you understand why they give the same result
