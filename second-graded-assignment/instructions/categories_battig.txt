@@ -1,0 +1,11 @@
+mammal
+bird
+fish
+vegetable
+fruit
+tree
+vehicle
+clothing
+tool
+kitchen_utensil
+dishware
