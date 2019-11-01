@@ -12,6 +12,8 @@ from collections import defaultdict
 from gensim import matutils 
 from nltk.data import find
 from matplotlib.pyplot import figure
+from sklearn import metrics
+from sklearn.cluster import KMeans
 
 def load_sem_model(sample_model=True):
     if sample_model:
@@ -106,13 +108,13 @@ def compose_words(sem_model, word1, word2):
     the component-wise sum of the embeddings of word1 and word2 and averaging the sum, 
     then normalising this mean vector to unit length (i.e., length == 1, i.e., the dot product is 1: [python command: np.dot(synthetic_vec, synthetic_vec)]).
     """
-    print(word1, word2)
     if word1 in sem_model and word2 in sem_model:
         vec1 = retrieve_vector(sem_model, word1)
         vec2 = retrieve_vector(sem_model, word2)
         vecs = [vec1, vec2]
         synthetic_vec = matutils.unitvec(np.array(vecs).mean(axis=0)).astype(np.float32)
-        return synthetic_vec, word1+"_"+word2
+        print(type(synthetic_vec))
+        return synthetic_vec, word1 + "_" + word2
     else:
         print(word1, "or", word2, "not found in the semantic model.")
 
@@ -143,6 +145,18 @@ def average_vector(sem_model, word_list):
     return None, None
 
 
+def get_purity(clusters_of_words, reference_clusters):
+    sum_overlap = 0
+    N = 0
+    for c, r in zip(clusters_of_words, reference_clusters):
+        contingency_matrix = metrics.cluster.contingency_matrix(r, c)
+        sum_overlap += np.sum(np.amax(contingency_matrix, axis=0)) / np.sum(contingency_matrix)
+    return sum_overlap
+    ### YOUR CODE HERE ###
+    # include this line in your code:
+###            print(cluster, " --> %s (overlap: %d)" % (assigned_category, max_overlap))
+
+
 def invert_dict(dictionary):
     new_dictionary = defaultdict(list)
     for word in dictionary.keys():
@@ -168,9 +182,9 @@ vectors_to_plot = []
 # For B: build a dictionary from categories to a list of their respective members
 category_to_words = invert_dict(taxonomy)
 categories = read_input("categories_battig.txt") # Categories == hypernyms?¿
-words = read_input("words_battig.txt")
+all_words = read_input("words_battig.txt")
 
-vectors_to_plot, tokens_to_plot = word_vec_list(sem_model, words)
+vectors_to_plot, tokens_to_plot = word_vec_list(sem_model, all_words)
 token_colours = ["blue"]*len(tokens_to_plot)
 tokens_to_plot = ['']*len(tokens_to_plot)
 
@@ -182,7 +196,7 @@ tokens_to_plot += tokens_to_plot_c
 token_colours += token_colors_c
         
 ## This should plot words and categories:
-# plot_with_tsne(vectors_to_plot, tokens_to_plot, color_coding=token_colours, outfile_name="vis_cats_words_coloured")
+#plot_with_tsne(vectors_to_plot, tokens_to_plot, color_coding=token_colours, outfile_name="vis_cats_words_coloured")
 
 # Step B: build prototype vector for each category, using the categorisation dictionary category_to_words
 #print("Computing prototype vectors from", category_to_words)
@@ -196,3 +210,25 @@ for (category, words) in category_to_words.items():
 # Steps A + B: Plot the words, categories, and prototypes with plot_with_tsne, using different colours for them
 figure(num = None, figsize = (15, 15), dpi = 80, facecolor = 'w', edgecolor = 'k')
 plot_with_tsne(vectors_to_plot, tokens_to_plot, color_coding = token_colours, outfile_name = "vis_cats_words_prototypes_coloured")
+
+
+# K - means
+num_clusters = 11
+vectors_to_cluster, words_to_cluster = word_vec_list(sem_model, all_words)
+# only keep the words in the taxonomy for which embeddings were available, 
+# i.e., which can be clustered
+    ### YOUR CODE HERE ###
+
+
+## the input to the KMeans function is a numpy array
+vectors_to_cluster = np.array(vectors_to_cluster) # fill in an appropriate argument
+
+## This how to call the kmeans function:
+kmeans = KMeans(n_clusters = num_clusters, random_state = 0).fit(vectors_to_cluster)
+print(kmeans.labels_)
+
+# print the words in each cluster. Hint: assign the attribute kmeans.labels to the target list of words
+
+# compute purity:
+#purity_score = get_purity(kmeans.labels_, reference_clusters)
+#print("Purity: %.3f"%purity_score)
