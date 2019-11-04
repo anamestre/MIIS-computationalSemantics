@@ -5,7 +5,7 @@ Created on Fri Nov  1 14:23:21 2019
 @author: Ana
 """
 
-import os, sys, gensim, tsne, nltk
+import sys, gensim, tsne, nltk
 import numpy as np
 import matplotlib.pyplot as plt
 from collections import defaultdict
@@ -14,6 +14,8 @@ from nltk.data import find
 from matplotlib.pyplot import figure
 from sklearn import metrics
 from sklearn.cluster import KMeans
+from sklearn.metrics import pairwise_distances_argmin
+import random
 
 def load_sem_model(sample_model=True):
     if sample_model:
@@ -45,7 +47,7 @@ def plot_with_tsne(vectors, words, color_coding = None, outfile_name="tsne_solut
         vectors = np.array(vectors)
         
     # Apply t-sne to project the word embeddings into a 2-dimensional space
-    Y = tsne.tsne(X=vectors, no_dims=2, initial_dims=int(len(words)/2), perplexity=5.0, max_iter=1000)
+    tsne.tsne(X=vectors, no_dims=2, initial_dims=int(len(words)/2), perplexity=5.0, max_iter=1000)
 
     # Let's plot the solution:
     if color_coding is not None:
@@ -65,11 +67,15 @@ def load_categories_words(words_filepath="wordnet_categorisation.txt"):
     '''Reads a tab-separated file with two columns and returns a dictionary 
     with elements in the first column as keys and elements in the second column as values'''
     my_taxonomy = defaultdict(list)
+    categories = []
+    words_list = []
     with open(words_filepath) as f:
         for line in f.readlines():
             word, category = line.split()
+            words_list.append(word)
+            categories.append(category)
             my_taxonomy[word].append(category)
-    return my_taxonomy
+    return my_taxonomy, words_list, categories
 
 
 def word_vec_list(sem_model, relevant_words):
@@ -148,9 +154,9 @@ def average_vector(sem_model, word_list):
 def get_purity(clusters_of_words, reference_clusters):
     sum_overlap = 0
     N = 0
-    for c, r in zip(clusters_of_words, reference_clusters):
-        contingency_matrix = metrics.cluster.contingency_matrix(r, c)
-        sum_overlap += np.sum(np.amax(contingency_matrix, axis=0)) / np.sum(contingency_matrix)
+    contingency_matrix = metrics.cluster.contingency_matrix(reference_clusters, clusters_of_words)
+    print(contingency_matrix)
+    sum_overlap += np.sum(np.amax(contingency_matrix, axis=0)) / np.sum(contingency_matrix)
     return sum_overlap
     ### YOUR CODE HERE ###
     # include this line in your code:
@@ -164,30 +170,39 @@ def invert_dict(dictionary):
             new_dictionary[cat].append(word)
     return new_dictionary
 
+
 def read_input(file):
     with open(file) as f:
         input_list = [line.strip() for line in f.readlines()]
     return input_list
 
 
-sem_model = load_sem_model()
-taxonomy = load_categories_words("wordnet_categorisation.txt") # Dict[word] = [categories]
-#print("Taxonomy loaded:\n", taxonomy)
-## Steps A + B: 
-# A: retrieve vectors for words and categories
-# B: build prototype vectors for each category, from the respective categories' members
-tokens_to_plot = []
-token_colours = []
-vectors_to_plot = []
-# For B: build a dictionary from categories to a list of their respective members
-category_to_words = invert_dict(taxonomy)
-categories = read_input("categories_battig.txt") # Categories == hypernyms?¿
-all_words = read_input("words_battig.txt")
+def print_cosine_similarities(sem_model, hypernym, category, hyponyms):
+    if hypernym in sem_model:
+        print("--- Cosine similarities for:", hypernym.upper())
+        if category in sem_model:
+            sim_score = sem_model.similarity(hypernym, category)
+            print("------ with prototype category:", category.upper(), ", cos sim:", sim_score)
+        for hypo in hyponyms:
+            if hypo in sem_model:
+                sim_sc = sem_model.similarity(hypernym, hypo)
+                print("------ with hyponym:", hypo.upper(), ", cos sim:", sim_sc)
+        
 
+# ------ Initializations
+sem_model = load_sem_model()
+taxonomy, all_words, categories = load_categories_words("wordnet_categorisation.txt") # Dict[word] = [categories]
+tokens_to_plot, token_colours, vectors_to_plot = [], [], []
+category_to_words = invert_dict(taxonomy)
+
+
+# ------ Words
 vectors_to_plot, tokens_to_plot = word_vec_list(sem_model, all_words)
 token_colours = ["blue"]*len(tokens_to_plot)
 tokens_to_plot = ['']*len(tokens_to_plot)
 
+
+# ------ Hypernyms
 vectors_to_plot_c, tokens_to_plot_c = word_vec_list(sem_model, categories)
 token_colors_c = ["magenta"]*len(tokens_to_plot_c)
 
@@ -196,39 +211,44 @@ tokens_to_plot += tokens_to_plot_c
 token_colours += token_colors_c
         
 ## This should plot words and categories:
-#plot_with_tsne(vectors_to_plot, tokens_to_plot, color_coding=token_colours, outfile_name="vis_cats_words_coloured")
+#plot_with_tsne(vectors_to_plot, tokens_to_plot, color_coding = token_colours, outfile_name="vis_cats_words_coloured")
 
-# Step B: build prototype vector for each category, using the categorisation dictionary category_to_words
-#print("Computing prototype vectors from", category_to_words)
+
+# ------ Categories
 for (category, words) in category_to_words.items():
     average, tokens = average_vector(sem_model, words)
+    #print_cosine_similarities(sem_model, category, category, words)
     if average is not None and tokens is not None:
         tokens_to_plot.append(category.upper())
         token_colours.append("yellow")
         vectors_to_plot.append(average)
 
-# Steps A + B: Plot the words, categories, and prototypes with plot_with_tsne, using different colours for them
-figure(num = None, figsize = (15, 15), dpi = 80, facecolor = 'w', edgecolor = 'k')
-plot_with_tsne(vectors_to_plot, tokens_to_plot, color_coding = token_colours, outfile_name = "vis_cats_words_prototypes_coloured")
+
+# ------ Plot with tsne: Words, Hypernyms & Categories
+figure(num = None, figsize = (5, 5), dpi = 80, facecolor = 'w', edgecolor = 'k')
+#plot_with_tsne(vectors_to_plot, tokens_to_plot, color_coding = token_colours, outfile_name = "vis_cats_words_prototypes_coloured")
 
 
-# K - means
+# ------ Kmeans clustering
 num_clusters = 11
-vectors_to_cluster, words_to_cluster = word_vec_list(sem_model, all_words)
-# only keep the words in the taxonomy for which embeddings were available, 
-# i.e., which can be clustered
-    ### YOUR CODE HERE ###
-
-
-## the input to the KMeans function is a numpy array
-vectors_to_cluster = np.array(vectors_to_cluster) # fill in an appropriate argument
-
-## This how to call the kmeans function:
+vectors_to_cluster_, words_to_cluster = word_vec_list(sem_model, all_words)
+vectors_to_cluster = np.array(vectors_to_cluster_)
 kmeans = KMeans(n_clusters = num_clusters, random_state = 0).fit(vectors_to_cluster)
-print(kmeans.labels_)
+
+cat_cluster = []
+prev_word = ""
+for w_cluster in words_to_cluster:
+    if prev_word != w_cluster:
+        for c in taxonomy[w_cluster]:
+            cat_cluster.append(c)
+            print(w_cluster, c)
+        prev_word = w_cluster
 
 # print the words in each cluster. Hint: assign the attribute kmeans.labels to the target list of words
 
 # compute purity:
-#purity_score = get_purity(kmeans.labels_, reference_clusters)
-#print("Purity: %.3f"%purity_score)
+purity_score = get_purity(kmeans.labels_, cat_cluster)
+#print(kmeans.labels_)
+#print()
+#print(labels)
+print("Purity: %.3f"%purity_score)
