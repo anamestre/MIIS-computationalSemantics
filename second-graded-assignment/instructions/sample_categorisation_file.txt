@@ -1,3 +1,0 @@
-dog	mammal
-elephant	mammal
-cat	mammal

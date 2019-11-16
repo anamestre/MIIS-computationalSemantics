@@ -1,0 +1,12 @@
+# -*- coding: utf-8 -*-
+
+README
+Exercise 1:
+    - Execute exercise1.py having both "categories_battig.txt" & "words_battig.txt" in the same directory.
+    - The file "wordnet_categorisation.txt" will be created (or overwritten if already existed)
+Exercise 2:
+    - Execute exercise2.py having the file "wordnet_categorisation.txt" in the same directory.
+    - Some plots will be saved on this directory.
+    
+About the assignment:
+Both the code and the analysis has been done jointly between Ana Mestre and Jonatan Koren.

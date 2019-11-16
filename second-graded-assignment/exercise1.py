@@ -37,12 +37,20 @@ words = read_input("words_battig.txt")
 results = []
 for word in words:
     hypernyms = get_hypernyms(word)
+    found = False
     for syn_hyp_list in hypernyms: 
         for syn_hyp in syn_hyp_list:
             lemmas_hypernym = syn_hyp.lemma_names()
             for lemma in lemmas_hypernym:
                 if lemma in categories:
                     result = [word, lemma]
-                    if result not in results:
-                        results.append(result)
+                    results.append(result)
+                    found = True
+                    break
+            if found:
+                break
+        if found:
+            break
+        
+                        
 print_results(results)
