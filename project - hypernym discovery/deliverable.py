@@ -1,9 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Mon Jan  6 17:08:08 2020
-
-@author: Ana
-"""
 
 import os
 import sys
@@ -22,8 +17,6 @@ def get_hyponyms(file):
     with open(file,  encoding='utf-8') as f:
         for line in f.readlines():
             hyponym, type_ = line.strip().split('\t')
-            if hyponym == "riptide":
-                print("--------------", hyponym.lower())
             hypos.append(hyponym)
         
             if type_ == "Entity":
@@ -74,7 +67,6 @@ def get_most_similar(sem_model, hypo, k, hypo_vectors):
     if vect2 is not None:
       sim = cosine_similarity(vect, vect2)
       similarities[hypo_] =  sim
-  #sorted_sim = sorted(similarities, key = lambda key: similarities[key], reverse = True)
   sorted_sim = sorted(similarities.items(), key = lambda x:x[1], reverse = True)
   return sorted_sim[:k]
 
@@ -84,18 +76,11 @@ def get_hypernyms_by_hypo(sem_model, k, hyponym, hypo_hyper, hypo_vectors):
   if hyponym in sem_model:
     most_similar = get_most_similar(sem_model, hyponym, k, hypo_vectors)
     
-    #print("______________________________")
-    #print("Hyponym:", hyponym)
-    #print("Most similar:", most_similar)
     top_hypernyms = {}
     similarity = {}
     for (hypo, sim) in most_similar:
           hypernyms = hypo_hyper[hypo] # Getting the list of hypernyms of every hypo.
-          """print("Hypo:", hypo)
-          print("Hypernym:", hypernyms)"""
           for hyper in hypernyms:
-              #if hyper in sem_model:
-              #  sim = sem_model.similarity(hyponym, hyper)
               if hyper in top_hypernyms.keys():
                   prev_value = top_hypernyms[hyper]
                   if sim > prev_value:
@@ -104,10 +89,11 @@ def get_hypernyms_by_hypo(sem_model, k, hyponym, hypo_hyper, hypo_vectors):
               else:
                   top_hypernyms[hyper] = sim
                   similarity[hyper] = sim
-              #print("Sim:", top_hypernyms[hyper])
     
     res = sorted(top_hypernyms, key = lambda key: top_hypernyms[key], reverse = True)
-    return res[:15], similarity
+    if len(res) > 15:
+        res = res[:15]
+    return res, similarity
   else:
     return []  , {}
 
@@ -145,7 +131,6 @@ def compose_words(sem_model, word1, word2):
         vec2 = retrieve_vector(sem_model, word2.lower())
         vecs = [vec1, vec2]
         synthetic_vec = matutils.unitvec(np.array(vecs).mean(axis=0)).astype(np.float32)
-        #print(type(synthetic_vec))
         return synthetic_vec, word1 + "_" + word2
     """else:
         print(word1, "or", word2, "not found in the semantic model.")"""
@@ -172,15 +157,12 @@ def dict_of_vectors(hs, sem_model):
 
 
 
+######################################################################
+############################ Main script #############################
+######################################################################
 
 
-
-
-
-
-
-
-spanish = True
+spanish = False
 
 if spanish:
     new_model = Word2Vec.load("spanish_word2vec.model")
@@ -213,10 +195,6 @@ i = 1
 for hypo in hypos_test:
     all_hypers, simi = get_hypernyms_by_hypo(new_model, K, hypo, hypos_hypers_train, hypos_train_vector)
     results[hypo] = all_hypers
-    """print("---------------", i, hypo)
-    for hyper in all_hypers:
-        print(hyper, simi[hyper])
-    i += 1"""
     
 with open(output_file, 'w') as f:
     for hypo in results:
